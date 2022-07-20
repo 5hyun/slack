@@ -2,9 +2,13 @@ import useInput from '@hooks/useInput';
 import React, { useCallback, useState } from 'react';
 import axios from 'axios';
 import { Form, Label, Input, LinkContainer, Button, Header, Error, Success } from './styles';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
+import fether from '@utils/fetcher';
+import useSWR from 'swr';
 
 const SignUp = () => {
+  const { data, error, mutate } = useSWR('http://localhost:3095/api/users', fether);
+
   const [email, onChangeEmail, setEmail] = useInput('');
   const [nickname, onChangeNickname, setNickname] = useInput('');
   const [password, , setPassword] = useInput('');
@@ -68,6 +72,15 @@ const SignUp = () => {
     },
     [email, nickname, password, passwordCheck, mismatchError],
   );
+
+  if (data === undefined) {
+    return <div>로딩중...</div>;
+  }
+
+  // 회원 가입 페이지도 data가 있으면 channel로 넘어간다.
+  if (data) {
+    return <Redirect to="/workspace/channel" />;
+  }
 
   return (
     <div id="container">

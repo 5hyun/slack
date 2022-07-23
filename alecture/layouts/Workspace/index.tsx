@@ -1,7 +1,6 @@
-import fether from '@utils/fetcher';
 import axios from 'axios';
-import React, { FC, useCallback, useState } from 'react';
-import { Redirect, Route, Switch } from 'react-router';
+import React, { useCallback, useState, VFC} from 'react';
+import {Redirect, Route, Switch, useParams} from 'react-router';
 import useSWR from 'swr';
 import {
   AddButton,
@@ -13,7 +12,7 @@ import {
   ProfileImg,
   ProfileModal,
   RightMenu,
-  WorkspaceButton,
+  WorkspaceButton, WorkspaceModal,
   WorkspaceName,
   Workspaces,
   WorkspaceWrapper,
@@ -27,22 +26,35 @@ import { Button, Input, Label } from '@pages/SignUp/styles';
 import useInput from '@hooks/useInput';
 import Modal from '@components/Modal';
 import { toast } from 'react-toastify';
+import fetcher from "@utils/fetcher";
+import CreateChannelModal from "@components/CreateChannelModal";
+import {IChannel} from "@typings/db";
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
 
-const Workspace: FC<React.PropsWithChildren<{}>> = ({ children }) => {
+const Workspace: VFC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
+  const[showWorkspaceModal,setShowWorkspaceModal] = useState(false);
+  const[showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
+
+  const {workspace} = useParams<{workspace: string}>();
   const {
     data: userData,
     error,
     mutate,
-  } = useSWR<IUser | false>('http://localhost:3095/api/users', fether, {
+  } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000,
   });
+
+  const {data: channelData} = useSWR<IChannel[]>(
+      // 내가 로그인 한 상태에 채널을 가져온다.
+      userData ? `/api/workspaces/${workspace}/channels` : null,
+      fetcher
+  );
 
   const onLogout = useCallback(() => {
     axios
@@ -78,14 +90,14 @@ const Workspace: FC<React.PropsWithChildren<{}>> = ({ children }) => {
       if (!newUrl || !newUrl.trim()) return;
       axios
         .post(
-          'http://localhost:3095/api/workspaces',
-          {
-            Workspace: newWorkspace,
-            url: newUrl,
-          },
-          {
-            withCredentials: true,
-          },
+            'http://localhost:3095/api/workspaces',
+            {
+              workspace: newWorkspace,
+              url: newUrl,
+            },
+            {
+              withCredentials: true,
+            },
         )
         .then(() => {
           // 성공하고나서 이런거 안비어두면 이전 입력값이 남아있다.
@@ -93,19 +105,33 @@ const Workspace: FC<React.PropsWithChildren<{}>> = ({ children }) => {
           setShowCreateWorkspaceModal(false);
           setNewWorkspace('');
           setNewUrl('');
+          console.log("성공");
         })
         .catch((error) => {
           // 에러 파악하기 위한 콘솔
           console.dir(error);
           toast.error(error.response?.data, { position: 'bottom-center' });
-        });
+          console.log("실패");
+        })
+          .finally(()=>{
+            console.log("되긴하니?");
+          });
     },
     [newWorkspace, newUrl],
   );
 
   const onCloseModal = useCallback(() => {
     setShowCreateWorkspaceModal(false);
+    setShowCreateChannelModal(false);
   }, []);
+
+  const toggleWorkspaceModel = useCallback(()=>{
+    setShowWorkspaceModal((prev)=>!prev);
+  },[]);
+
+  const onClickAddChannel = useCallback(()=>{
+    setShowCreateChannelModal(true);
+  },[]);
 
   //   로그아웃 버튼을 누르면 data가 false가 되어 login 페이지로 간다.
   if (!userData) {
@@ -135,9 +161,9 @@ const Workspace: FC<React.PropsWithChildren<{}>> = ({ children }) => {
       </Header>
       <WorkspaceWrapper>
         <Workspaces>
-          {userData?.Workspaces.map((ws) => {
+          {userData?.Workspaces?.map((ws) => {
             return (
-              <Link key={ws.id} to={`/workspace/${123}/channel/일반`}>
+              <Link key={ws.id} to={`/workspace/${ws.url}/channel/일반`}>
                 <WorkspaceButton>{ws.name.slice(0, 1).toUpperCase()}</WorkspaceButton>
               </Link>
             );
@@ -145,13 +171,25 @@ const Workspace: FC<React.PropsWithChildren<{}>> = ({ children }) => {
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
         <Channels>
-          <WorkspaceName>Sleact</WorkspaceName>
-          <MenuScroll>MenuScroll</MenuScroll>
+          <WorkspaceName onClick={toggleWorkspaceModel}>Sleact</WorkspaceName>
+          <MenuScroll>
+            <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModel} style={{top: 94, left:80}}>
+              <WorkspaceModal>
+                <h2>Sleact</h2>
+                {/*<button onClick={onClickInvitWorkspace}>워크스페이스에 사용자 초대</button>*/}
+                <button onClick={onClickAddChannel}>채널 만들기</button>
+                <button onClick={onLogout}>로그아웃</button>
+              </WorkspaceModal>
+            </Menu>
+            {channelData?.map((v)=>(
+                <div>{v.name}</div>
+            ))}
+          </MenuScroll>
         </Channels>
         <Chats>
           <Switch>
-            <Route path="/workspace/channel" component={Channel} />
-            <Route path="/workspace/dm" component={DirectMessage} />
+            <Route path="/workspace/:workspace/channel/:channel" component={Channel} />
+            <Route path="/workspace/:workspace/dm/:id" component={DirectMessage} />
           </Switch>
         </Chats>
       </WorkspaceWrapper>
@@ -168,6 +206,8 @@ const Workspace: FC<React.PropsWithChildren<{}>> = ({ children }) => {
           <Button type="submit">생성하기</Button>
         </form>
       </Modal>
+      <CreateChannelModal show={showCreateChannelModal} onCloseModal={onCloseModal}
+                          setShowCreateChannelModal={setShowCreateChannelModal}/>
     </div>
   );
 };

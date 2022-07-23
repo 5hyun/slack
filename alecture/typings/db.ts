@@ -1,3 +1,5 @@
+// 서버 관리자가 제공해주는 타입
+
 export interface IUser {
   id: number;
   nickname: string;

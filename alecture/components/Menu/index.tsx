@@ -10,11 +10,13 @@ interface Props {
   children: any;
 }
 
-const Menu: FC<Props> = ({ children, style, onCloseModal, closeButton }) => {
+const Menu: FC<Props> = ({ children, style, show, onCloseModal, closeButton }) => {
   // 메뉴를 클릭하면 안닫히는데 자기 자신을 제외한 부모 태그를 클릭하면 닫힌다.
   const stopPropagation = useCallback((e: any) => {
     e.stopPropagation();
   }, []);
+
+  if (!show) return null;
 
   return (
     // 메뉴를 클릭하면 CreateMenu까지 전달이 돼서 onCloseModal이 같이 실행된다.

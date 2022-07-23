@@ -3,11 +3,11 @@ import React, { useCallback, useState } from 'react';
 import axios from 'axios';
 import { Form, Label, Input, LinkContainer, Button, Header, Error, Success } from './styles';
 import { Link, Redirect } from 'react-router-dom';
-import fether from '@utils/fetcher';
+import fetcher from '@utils/fetcher';
 import useSWR from 'swr';
 
 const SignUp = () => {
-  const { data, error, mutate } = useSWR('http://localhost:3095/api/users', fether);
+  const { data, error, mutate } = useSWR('/api/users', fetcher);
 
   const [email, onChangeEmail, setEmail] = useInput('');
   const [nickname, onChangeNickname, setNickname] = useInput('');
@@ -15,7 +15,7 @@ const SignUp = () => {
   const [passwordCheck, , setPasswordCheck] = useInput('');
   //  비밀번호 일치 확인
   const [mismatchError, setMismatchError] = useState(false);
-  const [signUpError, setSignUpError] = useState('');
+  const [signUpError, setSignUpError] = useState(false);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const onChangePassword = useCallback(
@@ -23,7 +23,7 @@ const SignUp = () => {
       setPassword(e.target.value);
       setMismatchError(e.target.value !== passwordCheck);
     },
-    [passwordCheck],
+    [passwordCheck, setPassword],
   );
 
   const onChangePasswordCheck = useCallback(
@@ -31,17 +31,19 @@ const SignUp = () => {
       setPasswordCheck(e.target.value);
       setMismatchError(e.target.value !== password);
     },
-    [password],
+    [password, setPasswordCheck],
   );
 
   const onSubmit = useCallback(
     (e: any) => {
       e.preventDefault();
-      if (!mismatchError && nickname) {
-        console.log('서버로 회원가입하기');
+      if (!nickname || !nickname.trim()){
+          return;
+      }
+      if (!mismatchError){
 
         // 요청하기 전에 한번 초기화하는게 좋다.
-        setSignUpError('');
+        setSignUpError(false);
         setSignUpSuccess(false);
 
         axios
@@ -51,17 +53,16 @@ const SignUp = () => {
             password,
           })
           // 성공하는 경우
-          .then((response) => {
-            console.log(response);
+          .then(() => {
             setSignUpSuccess(true);
           })
           // 실패하는 경우
           .catch((error) => {
-            console.log(error.response);
-            setSignUpError(error.response.data);
-          })
+            console.log(error.response?.data);
+            setSignUpError(error.response?.data?.code === 403);
+          });
           // 성공을 하든 실패를 하든 무조건 실행되는 코드
-          .finally(() => {});
+          // .finally(() => {});
       }
       // // 혹은 try catch 문으로도 사용 가능하다.
       // try {} catch(err) {
@@ -79,7 +80,7 @@ const SignUp = () => {
 
   // 회원 가입 페이지도 data가 있으면 channel로 넘어간다.
   if (data) {
-    return <Redirect to="/workspace/channel" />;
+      return <Redirect to="/workspace/sleact/channel/일반" />;
   }
 
   return (

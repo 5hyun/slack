@@ -31,6 +31,7 @@ import CreateChannelModal from "@components/CreateChannelModal";
 import {IChannel} from "@typings/db";
 import InviteWorkspaceModal from "@components/InviteWorkspaceModal";
 import InviteChannelModal from "@components/InviteChannelModal";
+import DMList from "@components/DMList";
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
@@ -46,6 +47,8 @@ const Workspace: VFC = () => {
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
 
   const {workspace} = useParams<{workspace: string}>();
+
+  //사용자 데이터 가져오기
   const {
     data: userData,
     error,
@@ -54,10 +57,17 @@ const Workspace: VFC = () => {
     dedupingInterval: 2000,
   });
 
+  //채널 데이터 가져오기
   const {data: channelData} = useSWR<IChannel[]>(
       // 내가 로그인 한 상태에 채널을 가져온다.
       userData ? `/api/workspaces/${workspace}/channels` : null,
       fetcher
+  );
+
+  //멤버 데이터 가져오기
+  const { data: memberData } = useSWR<IUser[]>(
+      userData ? `/api/workspaces/${workspace}/members` : null,
+      fetcher,
   );
 
   const onLogout = useCallback(() => {
@@ -182,9 +192,8 @@ const Workspace: VFC = () => {
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            {channelData?.map((v)=>(
-                <div key={v.id}>{v.name}</div>
-            ))}
+            {/*<ChannelList userData={userData}/>*/}
+            <DMList userData={userData}/>
           </MenuScroll>
         </Channels>
         <Chats>

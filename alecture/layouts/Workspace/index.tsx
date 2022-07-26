@@ -32,6 +32,7 @@ import {IChannel} from "@typings/db";
 import InviteWorkspaceModal from "@components/InviteWorkspaceModal";
 import InviteChannelModal from "@components/InviteChannelModal";
 import DMList from "@components/DMList";
+import ChannelList from "@components/ChannelList";
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
@@ -142,7 +143,9 @@ const Workspace: VFC = () => {
     setShowCreateChannelModal(true);
   },[]);
 
-  const onClickInviteWorkspace = useCallback(() => {}, []);
+  const onClickInviteWorkspace = useCallback(() => {
+    setShowInviteWorkspaceModal(true);
+  }, []);
 
   //   로그아웃 버튼을 누르면 data가 false가 되어 login 페이지로 간다.
   if (!userData) {
@@ -192,8 +195,8 @@ const Workspace: VFC = () => {
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            {/*<ChannelList userData={userData}/>*/}
-            <DMList userData={userData}/>
+            <ChannelList />
+            <DMList />
           </MenuScroll>
         </Channels>
         <Chats>

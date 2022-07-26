@@ -7,7 +7,7 @@ interface Props {
   children: any;
 }
 const Modal: FC<Props> = ({ show, children, onCloseModal }) => {
-  const stopPropagation = useCallback((e:any) => {
+  const stopPropagation = useCallback((e: any) => {
     e.stopPropagation();
   }, []);
 
@@ -15,12 +15,12 @@ const Modal: FC<Props> = ({ show, children, onCloseModal }) => {
     return null;
   }
   return (
-      <CreateModal onClick={onCloseModal}>
-        <div onClick={stopPropagation}>
-          <CloseModalButton onClick={onCloseModal}>&times;</CloseModalButton>
-          {children}
-        </div>
-      </CreateModal>
+    <CreateModal onClick={onCloseModal}>
+      <div onClick={stopPropagation}>
+        <CloseModalButton onClick={onCloseModal}>&times;</CloseModalButton>
+        {children}
+      </div>
+    </CreateModal>
   );
 };
 

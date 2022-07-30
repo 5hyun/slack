@@ -47,7 +47,8 @@ const DirectMessage = () => {
       <Header>
         <img src={gravatar.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
       </Header>
-      <ChatList />
+      {/* 대부분 swr을 쓰면되지만 ChatList는 2개 이상의 컴포넌트에서 사용할거라 props를 준다. */}
+      <ChatList chatData={chatData} />
       <ChatBox chat={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm} />
     </Container>
   );

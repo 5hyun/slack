@@ -37,11 +37,10 @@ const SignUp = () => {
   const onSubmit = useCallback(
     (e: any) => {
       e.preventDefault();
-      if (!nickname || !nickname.trim()){
-          return;
+      if (!nickname || !nickname.trim()) {
+        return;
       }
-      if (!mismatchError){
-
+      if (!mismatchError) {
         // 요청하기 전에 한번 초기화하는게 좋다.
         setSignUpError(false);
         setSignUpSuccess(false);
@@ -61,8 +60,8 @@ const SignUp = () => {
             console.log(error.response?.data);
             setSignUpError(error.response?.data?.code === 403);
           });
-          // 성공을 하든 실패를 하든 무조건 실행되는 코드
-          // .finally(() => {});
+        // 성공을 하든 실패를 하든 무조건 실행되는 코드
+        // .finally(() => {});
       }
       // // 혹은 try catch 문으로도 사용 가능하다.
       // try {} catch(err) {
@@ -80,7 +79,7 @@ const SignUp = () => {
 
   // 회원 가입 페이지도 data가 있으면 channel로 넘어간다.
   if (data) {
-      return <Redirect to="/workspace/sleact/channel/일반" />;
+    return <Redirect to="/workspace/sleact/channel/일반" />;
   }
 
   return (

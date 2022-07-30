@@ -1,6 +1,5 @@
-// import useSocket from '@hooks/useSocket';
+import useSocket from '@hooks/useSocket';
 import { CollapseButton } from '@components/DMList/styles';
-// import useSocket from '@hooks/useSocket';
 import { IUser, IUserWithOnline } from '@typings/db';
 import fetcher from '@utils/fetcher';
 import React, { FC, useCallback, useEffect, useState } from 'react';
@@ -24,6 +23,7 @@ const DMList: FC = () => {
   // const [socket] = useSocket(workspace);
   const [channelCollapse, setChannelCollapse] = useState(false);
   const [onlineList, setOnlineList] = useState<number[]>([]);
+  const [socket] = useSocket(workspace);
 
   const toggleChannelCollapse = useCallback(() => {
     setChannelCollapse((prev) => !prev);
@@ -34,18 +34,21 @@ const DMList: FC = () => {
     setOnlineList([]);
   }, [workspace]);
 
-  // useEffect(() => {
-  //     socket?.on('onlineList', (data: number[]) => {
-  //         setOnlineList(data);
-  //     });
-  //     // socket?.on('dm', onMessage);
-  //     // console.log('socket on dm', socket?.hasListeners('dm'), socket);
-  //     return () => {
-  //         // socket?.off('dm', onMessage);
-  //         // console.log('socket off dm', socket?.hasListeners('dm'));
-  //         socket?.off('onlineList');
-  //     };
-  // }, [socket]);
+  //로그인이 되면 소켓을 연결하고 불이 들어오게 한다.
+  useEffect(() => {
+    //서버로 부터 누가 로그인해 있는지 정보가 온다.
+    socket?.on('onlineList', (data: number[]) => {
+      setOnlineList(data);
+    });
+    // socket?.on('dm', onMessage);
+    // console.log('socket on dm', socket?.hasListeners('dm'), socket);
+    return () => {
+      // socket?.off('dm', onMessage);
+      // console.log('socket off dm', socket?.hasListeners('dm'));
+      //on과 off는 짝이다. off는 정리해주는 것이다. on만 5번 있으면 프론트에서 5번을 받는다.
+      socket?.off('onlineList');
+    };
+  }, [socket]);
 
   return (
     <>

@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import {MentionsInput} from "react-mentions";
 // import { MentionsInput } from 'react-mentions';
 
 export const ChatArea = styled.div`
@@ -16,7 +17,7 @@ export const Form = styled.form`
   border: 1px solid rgb(29, 28, 29);
 `;
 
-export const MentionsTextarea = styled.textarea`
+export const MentionsTextarea = styled(MentionsInput)`
   font-family: Slack-Lato, appleLogo, sans-serif;
   font-size: 15px;
   padding: 8px 9px;
@@ -72,6 +73,8 @@ export const EachMention = styled.button<{ focus: boolean }>`
   & img {
     margin-right: 5px;
   }
+  //css에서도 변수를 쓸 수 있다.
+  //emotion에서는 focus가 true이면 밑에 속성을 추가적으로 해준다.
   ${({ focus }) =>
     focus &&
     `

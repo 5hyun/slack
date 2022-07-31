@@ -8,14 +8,14 @@ const Channel = () => {
   const [chat, onChangeChat, setChat] = useInput('');
   const onSubmitForm = useCallback((e: any) => {
     e.preventDefault();
-    console.log('submit')
+    console.log('submit');
     setChat('');
   }, []);
 
   return (
     <Container>
       <Header>채널!</Header>
-      <ChatList />
+      {/*<ChatList />*/}
       <ChatBox chat={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm} />
     </Container>
   );

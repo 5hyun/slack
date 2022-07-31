@@ -12,7 +12,8 @@ interface Props {
 }
 const Chat: VFC<Props> = ({ data }) => {
   const { workspace } = useParams<{ workspace: string; channel: string }>();
-  //    채팅 받는 사람
+  //    dm에서는 채팅 받는 사람이다
+  //  이렇게 하면 dm인지 channel인지 안다, 타입 가드 역할
   const user = 'Sender' in data ? data.Sender : data.User;
 
   const result = useMemo(

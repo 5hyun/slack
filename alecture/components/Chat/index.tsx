@@ -1,5 +1,5 @@
-import React, { memo, useMemo, VFC } from 'react';
-import { IChat, IDM } from '@typings/db';
+import React, { FC, memo, useMemo, VFC } from 'react';
+import { IChat, IDM, IUser } from '@typings/db';
 import { ChatWrapper } from '@components/Chat/styles';
 import gravatar from 'gravatar';
 import dayjs from 'dayjs';
@@ -10,33 +10,39 @@ import { useParams } from 'react-router';
 interface Props {
   data: IDM | IChat;
 }
-const Chat: VFC<Props> = ({ data }) => {
+const BACK_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:3095' : 'https://sleact.nodebird.com';
+const Chat: FC<Props> = memo(({ data }) => {
   const { workspace } = useParams<{ workspace: string; channel: string }>();
   //    dm에서는 채팅 받는 사람이다
   //  이렇게 하면 dm인지 channel인지 안다, 타입 가드 역할
-  const user = 'Sender' in data ? data.Sender : data.User;
+  const user: IUser = 'Sender' in data ? data.Sender : data.User;
 
-  const result = useMemo(
+  const result = useMemo<(string | JSX.Element)[] | JSX.Element>(
     () =>
-      regexifyString({
-        input: data.content,
-        // g는 모두 선택한다는 의미
-        //  // 안에 쓴다. 그리고 .은 모든 글, +는 한 개 이상, 숫자는 \d, ?는 0개나 1개, *은 0개 이상
-        //  만약 @[제로초]12](7)일 때, +만 하면 제로초]12로 최대한 많이 찾고, +? 하면 제로초로 최대한 적게 찾는다.
-        //  |는 또는, /n은 줄바꿈 의미
-        pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
-        decorator(match, index) {
-          const arr: string[] | null = match.match(/@\[(.+?)]\((\d+?)\)/)!;
-          if (arr) {
-            return (
-              <Link key={match + index} to={`/workspace/${workspace}/dm/${arr[2]}`}>
-                @{arr[1]}
-              </Link>
-            );
-          }
-          return <br key={index} />;
-        },
-      }),
+      //  uploads\\ 서버주소
+      data.content.startsWith('uploads\\') || data.content.startsWith('uploads/') ? (
+        <img src={`${BACK_URL}/${data.content}`} style={{ maxHeight: 200 }} />
+      ) : (
+        regexifyString({
+          // g는 모두 선택한다는 의미
+          //  // 안에 쓴다. 그리고 .은 모든 글, +는 한 개 이상, 숫자는 \d, ?는 0개나 1개, *은 0개 이상
+          //  만약 @[제로초]12](7)일 때, +만 하면 제로초]12로 최대한 많이 찾고, +? 하면 제로초로 최대한 적게 찾는다.
+          //  |는 또는, /n은 줄바꿈 의미
+          pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
+          decorator(match, index) {
+            const arr: string[] | null = match.match(/@\[(.+?)]\((\d+?)\)/)!;
+            if (arr) {
+              return (
+                <Link key={match + index} to={`/workspace/${workspace}/dm/${arr[2]}`}>
+                  @{arr[1]}
+                </Link>
+              );
+            }
+            return <br key={index} />;
+          },
+          input: data.content,
+        })
+      ),
     [workspace, data.content],
   );
 
@@ -54,6 +60,6 @@ const Chat: VFC<Props> = ({ data }) => {
       </div>
     </ChatWrapper>
   );
-};
+});
 
-export default memo(Chat);
+export default Chat;

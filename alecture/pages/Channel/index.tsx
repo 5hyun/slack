@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Container, Header } from '@pages/Channel/styles';
+import { Container, DragOver, Header } from '@pages/Channel/styles';
 import useInput from '@hooks/useInput';
 import ChatList from '@components/ChatList';
 import ChatBox from '@components/ChatBox';
@@ -13,6 +13,7 @@ import makeSection from '@utils/makeSection';
 import { useParams } from 'react-router';
 import Scrollbars from 'react-custom-scrollbars';
 import InviteChannelModal from '@components/InviteChannelModal';
+import { ToastContainer } from 'react-toastify';
 
 const Channel = () => {
   const { workspace, channel } = useParams<{ workspace: string; channel: string }>();
@@ -43,6 +44,7 @@ const Channel = () => {
 
   const scrollbarRef = useRef<Scrollbars>(null);
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const onSubmitForm = useCallback(
     (e: any) => {
@@ -86,7 +88,7 @@ const Channel = () => {
     (data: IChat) => {
       // id는 상대방 아이디
       // 내 아이디까지 포함하면 mutate가 2번 된다.
-      if (data.Channel.name === channel && data.UserId !== myData?.id) {
+      if (data.Channel.name === channel && (data.content.startsWith('uploads\\') || data.UserId !== myData?.id)) {
         mutateChat((chatData) => {
           chatData?.[0].unshift(data);
           return chatData;
@@ -132,6 +134,46 @@ const Channel = () => {
     setShowInviteChannelModal(false);
   }, []);
 
+  useEffect(() => {
+    //각 채널에 들어갔을 때 시간을 기록해서 안읽은 메시지 수를 구한다.
+    localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
+  }, [workspace, channel]);
+
+  const onDrop = useCallback(
+    (e: any) => {
+      e.preventDefault();
+      console.log(e);
+      const formData = new FormData();
+      if (e.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          // If dropped items aren't files, reject them
+          if (e.dataTransfer.items[i].kind === 'file') {
+            const file = e.dataTransfer.items[i].getAsFile();
+            console.log(e, '.... file[' + i + '].name = ' + file.name);
+            formData.append('image', file);
+          }
+        }
+      } else {
+        // Use DataTransfer interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          console.log(e, '... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+          formData.append('image', e.dataTransfer.files[i]);
+        }
+      }
+      axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData).then(() => {
+        setDragOver(false);
+      });
+    },
+    [workspace, channel],
+  );
+
+  const onDragOver = useCallback((e: any) => {
+    e.preventDefault();
+    console.log(e);
+    setDragOver(true);
+  }, []);
+
   if (!myData || !myData) {
     return null;
   }
@@ -141,7 +183,7 @@ const Channel = () => {
   const chatSections = makeSection(chatData ? chatData.flat().reverse() : []);
 
   return (
-    <Container>
+    <Container onDrop={onDrop} onDragOver={onDragOver}>
       <Header>
         <span>#{channel}</span>
         <div className="header-right">
@@ -165,6 +207,8 @@ const Channel = () => {
         onCloseModal={onCloseModal}
         setShowInviteChannelModal={setShowInviteChannelModal}
       />
+      <ToastContainer position="bottom-center" />
+      {dragOver && <DragOver>업로드!</DragOver>}
     </Container>
   );
 };

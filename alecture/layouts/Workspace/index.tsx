@@ -131,7 +131,7 @@ const Workspace: VFC = () => {
           },
         )
         .then(() => {
-          mutate();
+          mutate(false, false);
           setShowCreateWorkspaceModal(false);
           setNewWorkspace('');
           setNewUrl('');
@@ -191,7 +191,6 @@ const Workspace: VFC = () => {
       </Header>
       <WorkspaceWrapper>
         <Workspaces>
-          1
           {userData?.Workspaces?.map((ws) => {
             return (
               <Link key={ws.id} to={`/workspace/${ws.url}/channel/일반`}>
@@ -241,16 +240,16 @@ const Workspace: VFC = () => {
         onCloseModal={onCloseModal}
         setShowCreateChannelModal={setShowCreateChannelModal}
       />
-      {/*<InviteWorkspaceModal*/}
-      {/*    show={showInviteWorkspaceModal}*/}
-      {/*    onCloseModal={onCloseModal}*/}
-      {/*    setShowInviteWorkspaceModal={setShowInviteWorkspaceModal}*/}
-      {/*/>*/}
-      {/*<InviteChannelModal*/}
-      {/*    show={showInviteChannelModal}*/}
-      {/*    onCloseModal={ㅇ}*/}
-      {/*    setShowInviteChannelModal={setShowInviteChannelModal}*/}
-      {/*/>*/}
+      <InviteWorkspaceModal
+        show={showInviteWorkspaceModal}
+        onCloseModal={onCloseModal}
+        setShowInviteWorkspaceModal={setShowInviteWorkspaceModal}
+      />
+      <InviteChannelModal
+        show={showInviteChannelModal}
+        onCloseModal={onCloseModal}
+        setShowInviteChannelModal={setShowInviteChannelModal}
+      />
     </div>
   );
 };

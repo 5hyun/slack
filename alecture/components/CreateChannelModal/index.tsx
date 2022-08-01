@@ -17,15 +17,11 @@ interface Props {
 
 const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChannelModal }) => {
   const [newChannel, onChangeNewChannel, setNewChannel] = useInput('');
-  const { workspace, channel } = useParams<{ workspace: string; channel: string }>();
-  const {
-    data: userData,
-    error,
-    mutate,
-  } = useSWR<IUser | false>('/api/users', fetcher, {
+  const { workspace } = useParams<{ workspace: string; channel: string }>();
+  const { data: userData } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000,
   });
-  const { data: channelData, mutate: mutateChannel } = useSWR<IChannel[]>(
+  const { mutate: mutateChannel } = useSWR<IChannel[]>(
     // 내가 로그인 한 상태에 채널을 가져온다.
     userData ? `/api/workspaces/${workspace}/channels` : null,
     fetcher,
@@ -34,6 +30,9 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
   const onCreateChannel = useCallback(
     (e: any) => {
       e.preventDefault();
+      if (!newChannel || !newChannel.trim()) {
+        return;
+      }
       axios
         .post(
           `/api/workspaces/${workspace}/channels`,
@@ -45,8 +44,8 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
           },
         )
         .then((response) => {
+          mutateChannel();
           setShowCreateChannelModal(false);
-          mutateChannel(response.data, false);
           setNewChannel('');
         })
         .catch((error) => {
@@ -54,7 +53,7 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
           toast.error(error.response?.data, { position: 'bottom-center' });
         });
     },
-    [newChannel],
+    [newChannel, mutateChannel, setNewChannel, setShowCreateChannelModal, workspace],
   );
 
   return (
